@@ -2,18 +2,28 @@ import React,{Component} from 'react';
 import { Text, View, StyleSheet, Button, Image } from 'react-native';
 import Constants from 'expo-constants';
 
-//módulos do React Navigation
+//importações do React Navigation
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 
-//uso de Hooks para criar objetos
-const Stack = createStackNavigator();
 
-//header personalizado
-function HeaderPersonalizado(){
-  return(
+//módulo do Tab Navigator
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+//biblioteca de icones
+import { Ionicons } from '@expo/vector-icons';
+
+
+//uso de Hooks para criação de objetos
+const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+
+//header da home
+function LogoTitle() {
+  return (
     <Image
       style={{ width: 200, height: 50 }}
       source={require('./images/fiap.jpg')}
@@ -21,95 +31,179 @@ function HeaderPersonalizado(){
   );
 }
 
+
+//função que retorna stack referente a opções
+function OptionsScreen(){
+  return(
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Options"
+        options={
+          {headerTitle: props => <LogoTitle/>}}>
+          {props => 
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Tela de Opcões</Text>
+               </View>  
+          }
+      </Stack.Screen>
+    </Stack.Navigator>
+  );
+}
+
+//função que retorna stack referente a sobre
+function AboutScreen(){
+  return(
+    <Stack.Navigator>
+      <Stack.Screen
+        name="About"
+        options={
+          {headerTitle: props => <LogoTitle/>}}>
+          {props => 
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>App FIAP Versão 1.0</Text>
+               </View>  
+          }
+      </Stack.Screen>
+    </Stack.Navigator>
+  );
+}
+
+
 //tela inicial
-function TelaInicial(){
-
-  //chamada do objeto para gerir a navegação
+function TelaInicial() {
+  //objeto de controle de navegação
   const navigation = useNavigation();
-
-
-  //objeto que será passado para a tela de destino
+  
+  //objeto passado para outra tela
   var obj = {
-    nome: 'Aluno',
-    sobrenome: 'FIAP'
-  }
+          nome: 'Aluno',
+          sobrenome: 'FIAP'
+        };
 
   return(
     <View style={styles.container}>
-      <Text style={styles.paragraph}>Tela Inicial</Text>
+      <Text style={styles.paragraph}>Primeiro teste do React Navigation</Text>
       <Button
-        title='Ir para Detalhes'
-        onPress={() => navigation.navigate('Detalhes')}/>
+        title='Tela de Detalhes'
+        onPress={() => navigation.navigate('Detalhes')}
+      />
       <Button
-        title='Ver usuário'
-        onPress={() => navigation.navigate('Usuario',obj)}/>
+        title='Dados do Usuário'
+        onPress={() => navigation.navigate('Usuario',obj)}
+      />
     </View>
   );
 }
 
 //tela de detalhes
-function TelaDetalhes(){
-  
-  //chamada do objeto para gerir a navegação
+function TelaDetalhes() {
+  //objeto de controle de navegação
   const navigation = useNavigation();
-  
+
+  //recebendo dados da tela anterior
+
+
   return(
     <View style={styles.container}>
-      <Text style={styles.paragraph}>Exemplo de Detalhes</Text>
+      <Text style={styles.paragraph}>Minha tela de detalhes</Text>
       <Button
         title='Voltar'
-        onPress={() => navigation.goBack()}/>
+        onPress={() => navigation.goBack()}
+      />
     </View>
   );
 }
 
-//recebendo dados de uma tela anterior
-function TelaDadosUsuario(){
+//tela do usuario
+function TelaUsuario() {
   
-  //chamada do objeto para gerir a navegação
+  //objeto de controle de navegação
+  const navigation = useNavigation();
+
+  //objeto route para obter dados da tela anterior
   const route = useRoute();
 
-  //recebendo objeto de uma origem de navegação
+  //fazendo o fetch do objeto recebido da tela anterior
   const {nome} = route.params;
   const {sobrenome} = route.params;
   
   return(
     <View style={styles.container}>
-      <Text style={styles.paragraph}>Nome: {nome} </Text>
-      <Text style={styles.paragraph}>Sobrenome: {sobrenome} </Text>
+      <Text style={styles.paragraph}>Nome:{nome}</Text>
+      <Text style={styles.paragraph}>Sobrenome: {JSON.stringify(sobrenome)} </Text>
+      <Button
+        title='Voltar'
+        onPress={() => navigation.goBack()}
+      />
     </View>
   );
 }
 
 
-class App extends Component {
-  render(){
-    return (
-    
-      <NavigationContainer>
-        <Stack.Navigator>
-
+//stacks do App da aula anterior
+function AppStack(){
+  return(
+    <Stack.Navigator>
+          
           <Stack.Screen
             name='Home'
-            options={{headerTitle: props => <HeaderPersonalizado/>}}>
-            {props => <TelaInicial/>}
+            options={{ headerTitle: props => <LogoTitle/> }}>
+            {props => <TelaInicial />}
           </Stack.Screen>
 
           <Stack.Screen
             name='Detalhes'
             options={{title: 'Tela de Detalhes'}}>
-            {props => <TelaDetalhes/>}
+            {props => <TelaDetalhes />}
           </Stack.Screen>
 
           <Stack.Screen
             name='Usuario'
             options={{title: 'Dados do Usuário'}}>
-            {props => <TelaDadosUsuario/>}
+            {props => <TelaUsuario />}
           </Stack.Screen>
 
-        </Stack.Navigator>
-      </NavigationContainer>
 
+        </Stack.Navigator>
+
+  );
+}
+
+class App extends Component {
+  render(){
+    return (
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+
+            if (route.name === 'App') {
+              iconName = 'ios-home';
+            } 
+            else if (route.name === 'Options') {
+              iconName = focused ? 'ios-list-box' : 'ios-list';
+            }
+            else if (route.name === 'About') {
+              iconName = focused ? 'ios-information-circle' : 'ios-information-circle-outline';
+            }
+
+            // Qualquer componente pode ser usado
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+        })}
+        tabBarOptions={{
+          activeTintColor: 'red',
+          inactiveTintColor: 'black',
+        }}
+      >
+
+          <Tab.Screen name="App" component={AppStack}/>
+          <Tab.Screen name="Options" component={OptionsScreen}/>
+          <Tab.Screen name="About" component={AboutScreen}/>
+
+        </Tab.Navigator>
+      </NavigationContainer>
   );
   }
 } export default App
