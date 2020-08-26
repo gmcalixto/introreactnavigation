@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, Button, Image } from 'react-native';
 import Constants from 'expo-constants';
 
 //importações do React Navigation
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DrawerActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
@@ -15,19 +15,31 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 //biblioteca de icones
 import { Ionicons } from '@expo/vector-icons';
 
+//módulo do Navigation Drawer
+import {createDrawerNavigator} from '@react-navigation/drawer';
+
 
 //uso de Hooks para criação de objetos
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+const Drawer = createDrawerNavigator();
 
 
 //header da home
 function LogoTitle() {
+  //uso do navigation para acionar o Drawer
+  const navigation = useNavigation();
+  
   return (
-    <Image
-      style={{ width: 200, height: 50 }}
-      source={require('./images/fiap.jpg')}
-    />
+    <View style={{flex: 1, flexDirection: 'row'}}>
+      <Button
+        title="Menu"
+        onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}/>
+      <Image
+        style={{ width: 200, height: 50 }}
+        source={require('./images/fiap.jpg')}
+      />
+    </View>
   );
 }
 
@@ -169,40 +181,61 @@ function AppStack(){
   );
 }
 
+//renderiza os botões inferiores
+function AppBottonTab({routeName}){
+  return(
+        <Tab.Navigator
+      initialRouteName={routeName}
+      screenOptions={({ route }) => ({
+      tabBarIcon: ({ focused, color, size }) => {
+        let iconName;
+
+        if (route.name === 'App') {
+          iconName = 'ios-home';
+        } 
+        else if (route.name === 'Options') {
+          iconName = focused ? 'ios-list-box' : 'ios-list';
+        }
+        else if (route.name === 'About') {
+          iconName = focused ? 'ios-information-circle' : 'ios-information-circle-outline';
+        }
+
+        // Qualquer componente pode ser usado
+        return <Ionicons name={iconName} size={size} color={color} />;
+      },
+    })}
+    tabBarOptions={{
+      activeTintColor: 'red',
+      inactiveTintColor: 'black',
+    }}
+  >
+
+      <Tab.Screen name="App" component={AppStack}/>
+      <Tab.Screen name="Options" component={OptionsScreen}/>
+      <Tab.Screen name="About" component={AboutScreen}/>
+
+    </Tab.Navigator>
+
+  );
+}
+
+
+
 class App extends Component {
   render(){
     return (
       <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-
-            if (route.name === 'App') {
-              iconName = 'ios-home';
-            } 
-            else if (route.name === 'Options') {
-              iconName = focused ? 'ios-list-box' : 'ios-list';
-            }
-            else if (route.name === 'About') {
-              iconName = focused ? 'ios-information-circle' : 'ios-information-circle-outline';
-            }
-
-            // Qualquer componente pode ser usado
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-        })}
-        tabBarOptions={{
-          activeTintColor: 'red',
-          inactiveTintColor: 'black',
-        }}
-      >
-
-          <Tab.Screen name="App" component={AppStack}/>
-          <Tab.Screen name="Options" component={OptionsScreen}/>
-          <Tab.Screen name="About" component={AboutScreen}/>
-
-        </Tab.Navigator>
+        <Drawer.Navigator>
+          <Drawer.Screen name='App'>
+            {props => <AppBottonTab routeName='App' />}
+          </Drawer.Screen>
+          <Drawer.Screen name='Options'>
+            {props => <AppBottonTab routeName='Options' />}
+          </Drawer.Screen>
+          <Drawer.Screen name='About'>
+            {props => <AppBottonTab routeName='About' />}
+          </Drawer.Screen>
+        </Drawer.Navigator>
       </NavigationContainer>
   );
   }
