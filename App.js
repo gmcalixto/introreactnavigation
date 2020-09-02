@@ -1,4 +1,4 @@
-import React,{Component} from 'react';
+import React,{Component,useState} from 'react';
 import { Text, View, StyleSheet, Button, Image } from 'react-native';
 import Constants from 'expo-constants';
 
@@ -25,13 +25,16 @@ const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
 
-//header da home
+
+//header da home - atualizado com um botão
 function LogoTitle() {
-  //uso do navigation para acionar o Drawer
   const navigation = useNavigation();
   
   return (
-    <View style={{flex: 1, flexDirection: 'row'}}>
+    <View style={{
+      flex: 1,
+      flexDirection:'row'
+    }}>
       <Button
         title="Menu"
         onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}/>
@@ -85,6 +88,7 @@ function AboutScreen(){
 function TelaInicial() {
   //objeto de controle de navegação
   const navigation = useNavigation();
+
   
   //objeto passado para outra tela
   var obj = {
@@ -100,6 +104,10 @@ function TelaInicial() {
         onPress={() => navigation.navigate('Detalhes')}
       />
       <Button
+        title='Tela de Avisos'
+        onPress={() => navigation.navigate('Avisos')}
+      />
+      <Button
         title='Dados do Usuário'
         onPress={() => navigation.navigate('Usuario',obj)}
       />
@@ -108,7 +116,9 @@ function TelaInicial() {
 }
 
 //tela de detalhes
-function TelaDetalhes() {
+function TelaDetalhes({texto}) {
+  //variavel texto recebendo conteúdo da função que gerencia as stacks
+  
   //objeto de controle de navegação
   const navigation = useNavigation();
 
@@ -117,7 +127,7 @@ function TelaDetalhes() {
 
   return(
     <View style={styles.container}>
-      <Text style={styles.paragraph}>Minha tela de detalhes</Text>
+      <Text style={styles.paragraph}>{texto}</Text>
       <Button
         title='Voltar'
         onPress={() => navigation.goBack()}
@@ -154,7 +164,15 @@ function TelaUsuario() {
 
 //stacks do App da aula anterior
 function AppStack(){
+  //hooks declarados dentro da função (elas ficam dentro deste escopo)
+  const [texto, setTexto] = useState('Texto da minha tela de detalhes');
+  const [aviso, setAviso] = useState('Meus avisos');
+  
   return(
+
+
+    //Vejam que na stack eu uso a mesma tela de detalhes e vou alterando o texto conoforme a necessidade.Você pode usar estes hooks com state ou também pode ir usando o fetch em arquivo locais JSON.
+
     <Stack.Navigator>
           
           <Stack.Screen
@@ -166,7 +184,13 @@ function AppStack(){
           <Stack.Screen
             name='Detalhes'
             options={{title: 'Tela de Detalhes'}}>
-            {props => <TelaDetalhes />}
+            {props => <TelaDetalhes texto={texto}/>}
+          </Stack.Screen>
+
+          <Stack.Screen
+            name='Avisos'
+            options={{title: 'Tela de Avisos'}}>
+            {props => <TelaDetalhes texto={aviso}/>}
           </Stack.Screen>
 
           <Stack.Screen
@@ -181,10 +205,10 @@ function AppStack(){
   );
 }
 
-//renderiza os botões inferiores
-function AppBottonTab({routeName}){
+//função que retorna a barra inferior com icones
+function AppBottonTabs({routeName}){
   return(
-        <Tab.Navigator
+    <Tab.Navigator
       initialRouteName={routeName}
       screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
@@ -215,25 +239,22 @@ function AppBottonTab({routeName}){
       <Tab.Screen name="About" component={AboutScreen}/>
 
     </Tab.Navigator>
-
   );
 }
-
-
 
 class App extends Component {
   render(){
     return (
       <NavigationContainer>
         <Drawer.Navigator>
-          <Drawer.Screen name='App'>
-            {props => <AppBottonTab routeName='App' />}
+          <Drawer.Screen name="App">
+            {props => <AppBottonTabs routeName="App"/>}
           </Drawer.Screen>
-          <Drawer.Screen name='Options'>
-            {props => <AppBottonTab routeName='Options' />}
+          <Drawer.Screen name="Options">
+            {props => <AppBottonTabs routeName="Options"/>}
           </Drawer.Screen>
-          <Drawer.Screen name='About'>
-            {props => <AppBottonTab routeName='About' />}
+          <Drawer.Screen name="About">
+            {props => <AppBottonTabs routeName="About"/>}
           </Drawer.Screen>
         </Drawer.Navigator>
       </NavigationContainer>
