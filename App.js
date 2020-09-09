@@ -268,20 +268,22 @@ function TelaLogin(){
         autoCorrect={false}
         clearButtonMode={true}
         style={styles.textInput}
-        onChangeText={(value) => this.setUser(value)}/>
+        onChangeText={(value) => setUser(value)}/>
+
       <Text style={styles.paragraph}>Senha</Text>
+
       <TextInput
         autoCorrect={false}
         secureTextEntry={true}
         clearButtonMode={true}
         style={styles.textInput}
-        onChangeText={(value) => this.setPassword(value)}/>
+        onChangeText={(value) => setPassword(value)}/>
 
       <TouchableOpacity
         style={styles.paragraph}
         onPress={() => navigation.navigate('Main')}>
-        <View>
-          <Text style={styles.button}>Entrar</Text>
+        <View style={styles.button}>
+          <Text style={{alignSelf: 'center'}}>Entrar</Text>
         </View>
       </TouchableOpacity>
   
@@ -336,7 +338,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center'
   },
   button:{
-    flex: 1,
     justifyContent: 'center',
     backgroundColor: '#AAA',
     color:'white',
