@@ -1,5 +1,16 @@
 import React,{Component, useState} from 'react';
-import { Text, View, StyleSheet, Button, Image, TextInput, TouchableOpacity } from 'react-native';
+import { Text, 
+         View, 
+         StyleSheet, 
+         Button, 
+         Image, 
+         TextInput, 
+         TouchableOpacity, 
+         ActivityIndicator,
+         Platform,
+         ToastAndroid,
+         Alert } from 'react-native';
+
 import Constants from 'expo-constants';
 
 //importações do React Navigation
@@ -44,20 +55,32 @@ function LogoSimple() {
 function LogoTitle() {
   //objeto de controle de navegação
   const navigation = useNavigation();
+  const route = useRoute();
+
+  const {user} = route.params
+  const {token} = route.params
+
+  console.log(user)
+  console.log(token)
 
   return (
-    <View style={{
-      flex: 1,
-      flexDirection:'row'
-    }}>
-      <Entypo name="menu" size={40} color="black" 
-        onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}/>
-      <Image
-        style={{ width: 200, height: 50 }}
-        source={require('./images/fiap.jpg')}
-      />
-      <Entypo name="log-out" size={40} color="black" 
-        onPress={()=> navigation.popToTop()}/>
+    <View>
+      <View style={{
+        flex: 1,
+        flexDirection:'row'
+      }}>
+        <Entypo name="menu" size={40} color="black" 
+          onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}/>
+        <Image
+          style={{ width: 200, height: 50 }}
+          source={require('./images/fiap.jpg')}
+        />
+        <Entypo name="log-out" size={40} color="black" 
+          onPress={()=> navigation.popToTop()}/>
+      </View>
+      <View style={{justifyContent: 'center', alignSelf: 'center'}}>
+        <Text>Bem vindo {user}</Text>
+      </View>
     </View>
   );
 }
@@ -260,7 +283,63 @@ function TelaLogin(){
   const navigation = useNavigation();
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
-  
+  const [loading,setLoading] = useState(false);
+
+//personaliza renderização da mensagem para o sistema operacional específico
+function showMessage(message){
+  if(Platform.OS === 'android'){
+    ToastAndroid.show(message,ToastAndroid.SHORT)
+  }
+  else if(Platform.OS === 'ios'){
+    Alert.alert("FIAP",message)
+  }
+  else{
+    alert(message)
+  }
+}
+
+  //verificar credenciais do usuário para acesso à aplicação
+ function checkPost(){
+
+    //objeto que será passado pelo navigation
+    var obj = {
+      user: user,
+      token: '',
+    }
+
+
+    setLoading(true);
+
+    fetch('https://reqres.in/api/login',{
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: user,
+        password: password,
+      }),
+    }).then((response)=> {
+      response.json().then((result) => {
+        //aqui é analisada a resposta
+
+        if(response.status === 200){
+          obj.token = result['token']
+          navigation.navigate('Main',obj)
+        }
+        else{
+          console.log(result)
+          showMessage(result['error'])
+        }
+
+        setLoading(false);
+
+      })
+    })
+  }
+
+
   return(
     <View style={styles.container}>
       <Text style={styles.paragraph}>Usuário</Text>
@@ -281,9 +360,12 @@ function TelaLogin(){
 
       <TouchableOpacity
         style={styles.paragraph}
-        onPress={() => navigation.navigate('Main')}>
+        onPress={() => checkPost()}>
         <View style={styles.button}>
-          <Text style={{alignSelf: 'center'}}>Entrar</Text>
+          {loading
+            ? <ActivityIndicator size='small' color='blue'/>
+            : <Text style={{alignSelf: 'center'}}>Entrar</Text>
+          }
         </View>
       </TouchableOpacity>
   
