@@ -28,6 +28,9 @@ import { Ionicons, Entypo } from '@expo/vector-icons';
 //módulo do Navigation Drawer
 import {createDrawerNavigator} from '@react-navigation/drawer';
 
+//importação do contexto
+import {userContext} from './components/userContext';
+
 
 //uso de Hooks para criação de objetos
 const Stack = createStackNavigator();
@@ -104,9 +107,13 @@ function OptionsScreen(){
   );
 }
 
+
 //função que retorna stack referente a sobre
 function AboutScreen(){
   return(
+  <userContext.Consumer>
+      {({user, token, nav,changeUser, changeToken, changeNav}) => (
+    
     <Stack.Navigator>
       <Stack.Screen
         name="About"
@@ -115,10 +122,16 @@ function AboutScreen(){
           {props => 
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <Text>App FIAP Versão 1.0</Text>
+                <Text>Usuário: {user}</Text>
+                <Text>Token: {token}</Text>
+                <Button title='logout' onPress={() => nav.popToTop()}/>
                </View>  
           }
       </Stack.Screen>
     </Stack.Navigator>
+
+      )}
+    </userContext.Consumer>
   );
 }
 
@@ -167,6 +180,7 @@ function TelaDetalhes() {
     </View>
   );
 }
+
 
 //tela do usuario
 function TelaUsuario() {
@@ -277,12 +291,14 @@ function MainScreen(){
   );
 }
 
+//TelaLogin usando contexto
 function TelaLogin(){
   
   //hooks de navegação e states para capturar dados de usuário e senha
   const navigation = useNavigation();
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
+  const [token, setToken] = useState('');
   const [loading,setLoading] = useState(false);
 
 //personaliza renderização da mensagem para o sistema operacional específico
@@ -299,7 +315,8 @@ function showMessage(message){
 }
 
   //verificar credenciais do usuário para acesso à aplicação
- function checkPost(){
+  //checkPost alterado para usar funções de contexto
+ function checkPost(userFn,tokenFn,navFn){
 
     //objeto que será passado pelo navigation
     var obj = {
@@ -326,6 +343,12 @@ function showMessage(message){
 
         if(response.status === 200){
           obj.token = result['token']
+
+          //alimenta o contexto
+          userFn(user)
+          tokenFn(result['token'])
+          navFn(navigation)
+
           navigation.navigate('Main',obj)
         }
         else{
@@ -341,56 +364,116 @@ function showMessage(message){
 
 
   return(
-    <View style={styles.container}>
-      <Text style={styles.paragraph}>Usuário</Text>
-      <TextInput
-        autoCorrect={false}
-        clearButtonMode={true}
-        style={styles.textInput}
-        onChangeText={(value) => setUser(value)}/>
 
-      <Text style={styles.paragraph}>Senha</Text>
+    <userContext.Consumer>
+      {({user, token, nav,changeUser, changeToken, changeNav}) => (
+        <View style={styles.container}>
+          <Text style={styles.paragraph}>Usuário</Text>
+          <TextInput
+            autoCorrect={false}
+            clearButtonMode={true}
+            style={styles.textInput}
+            onChangeText={(value) => setUser(value)}/>
 
-      <TextInput
-        autoCorrect={false}
-        secureTextEntry={true}
-        clearButtonMode={true}
-        style={styles.textInput}
-        onChangeText={(value) => setPassword(value)}/>
+          <Text style={styles.paragraph}>Senha</Text>
 
-      <TouchableOpacity
-        style={styles.paragraph}
-        onPress={() => checkPost()}>
-        <View style={styles.button}>
-          {loading
-            ? <ActivityIndicator size='small' color='blue'/>
-            : <Text style={{alignSelf: 'center'}}>Entrar</Text>
-          }
+          <TextInput
+            autoCorrect={false}
+            secureTextEntry={true}
+            clearButtonMode={true}
+            style={styles.textInput}
+            onChangeText={(value) => setPassword(value)}/>
+
+          <TouchableOpacity
+            style={styles.paragraph}
+            onPress={() => checkPost(changeUser,changeToken, changeNav)}>
+            <View style={styles.button}>
+              {loading
+                ? <ActivityIndicator size='small' color='blue'/>
+                : <Text style={{alignSelf: 'center'}}>Entrar</Text>
+              }
+            </View>
+          </TouchableOpacity>
+      
         </View>
-      </TouchableOpacity>
-  
-    </View>
+      )}
+
+    </userContext.Consumer>
   );
 }
 
+
 //renderiza o navigation drawer
 class App extends Component {
+
+  //state referente ao contexto
+  constructor(props){
+    super(props)
+
+    this.state = {
+      userName: 'username',
+      token: 'token',
+      navigation: null
+    }
+
+    this.setUser = this.setUser.bind(this);
+    this.setToken = this.setToken.bind(this);
+    this.setNavigation = this.setNavigation.bind(this);
+
+
+  }
+
+
+
+  //altera o usuario
+  setUser(usr){
+    this.setState({user: usr})
+  }
+
+  //altera o token
+  setToken(tk){
+    this.setState({token: tk})
+  }
+
+  //altera o token
+  setNavigation(nav){
+    this.setState({navigation: nav})
+  }
+
   render(){
+
+     //objeto a ser passado no provider
+    const loginValue = {
+        user: this.state.user,
+        token: this.state.token,
+        nav: this.state.navigation,
+        changeUser: this.setUser,
+        changeToken: this.setToken,
+        changeNav: this.setNavigation
+    }
+  
+
+    //renderização raiz com o contexto de usuário
     return (
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen
-            name="Login"
-            options={{headerTitle: props => <LogoSimple/>}}>
-            {props => <TelaLogin/>}
-          </Stack.Screen>
-          <Stack.Screen
-            name="Main"
-            options={{headerTitle: props => <LogoTitle/>, headerLeft: null}}>
-            {props => <MainScreen/>}
-          </Stack.Screen>
-        </Stack.Navigator>
-      </NavigationContainer>
+
+      <userContext.Provider value={loginValue}>
+
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Login">
+            <Stack.Screen
+              name="Login"
+              options={{headerTitle: props => <LogoSimple/>}}>
+              {props => <TelaLogin/>}
+            </Stack.Screen>
+            <Stack.Screen
+              name="Main"
+              options={{headerTitle: props => <LogoTitle/>, headerLeft: null}}>
+              {props => <MainScreen/>}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+
+      </userContext.Provider>
   );
   }
 } export default App
