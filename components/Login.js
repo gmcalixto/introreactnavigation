@@ -29,7 +29,8 @@ import {LogoTitle,LogoSimple} from './Header'
 //uso de Hooks para criação de objetos
 const Stack = createStackNavigator();
 
-
+//uso do Redux para guardar dados do usuário
+import {loginStore} from './Store'
 
 //TelaLogin usando contexto
 function TelaLogin(){
@@ -52,6 +53,32 @@ function showMessage(message){
   else{
     alert(message)
   }
+}
+
+function updateLoginStore(_user,_token,_nav){
+  
+  //action para user
+  var text = _user
+  var action = {
+    type: 'CHANGE_USER',
+    text
+  }
+  loginStore.dispatch(action)
+
+  //action para token
+  text = _token
+  action = {
+    type: 'CHANGE_TOKEN',
+    text
+  }
+  loginStore.dispatch(action)
+
+  let obj = _nav
+  let nav_action ={
+    type: 'CHANGE_NAV',
+    obj
+  }
+  loginStore.dispatch(nav_action)
 }
 
   //verificar credenciais do usuário para acesso à aplicação
@@ -88,6 +115,11 @@ function showMessage(message){
           userFn(user)
           tokenFn(result['token'])
           navFn(navigation)
+
+          
+          //alimenta o store (Redux)
+          updateLoginStore(user,result['token'],navigation)
+          
 
           navigation.navigate('Main',obj)
         }

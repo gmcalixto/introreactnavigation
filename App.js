@@ -9,13 +9,14 @@ import {userContext} from './components/userContext';
 //importação dos componentes de tela
 import {LogoTitle,LogoSimple} from './components/Header'
 
+//import do Provider do Redux
+import {loginStore} from './components/Store'
+
 import {TelaLogin} from './components/Login'
 import {MainScreen} from './components/AppStack'
 
 //uso de Hooks para criação de objetos
 const Stack = createStackNavigator();
-
-
 
 
 //renderiza o navigation drawer

@@ -29,22 +29,34 @@ import {LogoTitle,LogoSimple} from './Header'
 //uso de Hooks para criação de objetos
 const Stack = createStackNavigator();
 
+//importacao do consumer do Redux
+//import { ReactReduxContext } from 'react-redux'
+import {loginStore} from './Store'
+
 
 //função que retorna stack referente a opções
 function OptionsScreen(){
   return(
-    <Stack.Navigator>
-      <Stack.Screen
-        name="Options"
-        options={
-          {headerTitle: props => <LogoTitle/>}}>
-          {props => 
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text>Tela de Opcões</Text>
-               </View>  
-          }
-      </Stack.Screen>
-    </Stack.Navigator>
+
+         <Stack.Navigator>
+          <Stack.Screen
+            name="Options"
+            options={
+              {headerTitle: props => <LogoTitle/>}}>
+              {props => 
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text>Consumo do Redux</Text>
+                    <Text>User: {loginStore.getState().userName}</Text>
+                    <Text>Token: {loginStore.getState().token}</Text>
+                    <Button title='logoff' onPress={() => loginStore.dispatch({type:'RESET'})}/>
+              
+                  </View>  
+              }
+          </Stack.Screen>
+        </Stack.Navigator>
+      
+
+   
   );
 }
 
@@ -62,7 +74,7 @@ function AboutScreen(){
           {headerTitle: props => <LogoTitle/>}}>
           {props => 
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text>App FIAP Versão 1.0</Text>
+                <Text>Uso de Contexto</Text>
                 <Text>Usuário: {user}</Text>
                 <Text>Token: {token}</Text>
                 <Button title='logout' onPress={() => nav.popToTop()}/>
